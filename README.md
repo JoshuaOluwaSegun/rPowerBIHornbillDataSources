@@ -28,11 +28,13 @@ Each script requires the following variables to be set (all case-sensitive):
 This script will:
  - Run a pre-defined report on the Hornbill instance;
  - Wait for the report to complete;
- - Retrieve the report CSV data and present back as an R data frame called dataframe, which can then be retrieved and reported on by PowerBI.
+ - Retrieve the report CSV data and present back as an R data frame called output, which can then be retrieved and reported on by PowerBI.
 
 Script Variables:
  - reportID: The ID (Primary Key, INT) of the  report to be run;
  - reportComment: A comment to write against the report run job.
+ - deleteReportInstance: a boolean value to determine if, once the report is run on Hornbill and the data has been pulled in to PowerBI, whether the historic report run instance should be removed from your Hornbill report.
+ - suspendSeconds: The number of seconds the script should wait between checks to see if the report is complete. NOTE : there is a defect/incompatibility between Power BI and the RCurl library that we are using to make the HTTP requests to Hornbill, where if more than 4 or 5 calls with getURL are made within the same script then getURL hangs until Power BI releases it. Increasing the number of seconds between checks reduces the required number of calls to your Hornbill instance, and will fix data source hanging issues.
 
 ##### PowerBIDataSource_Report.R
 This script will:

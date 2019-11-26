@@ -1,3 +1,14 @@
+# CHANGELOG
+
+## 1.2.0 (November 26th, 2019)
+
+Features:
+
+- Added support for TLS 1.2/1.3
+- Removed need to provide instance zone
+- General tidy-up of code
+- Updated package dependencies - now requires httr and jsonlite, and no longer requires RCurl and XML
+
 ## 1.1.0 (June 28th, 2018)
 
 Features:

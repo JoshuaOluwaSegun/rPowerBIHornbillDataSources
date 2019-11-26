@@ -1,70 +1,42 @@
 #Define Instance Details
-instanceName = "Instance Name Goes Here"
-instanceZone = "eur"
-
-# Define API Key
-apiKey = "API key goes here"
+instanceName = "yourinstanceid"
+apiKey = "yourapikey"
 
 # Define Measure details
-measureID = "the primary key (INT) of the measure you wish to return trending data from"
+measureID = "71"
 
 # Import dependencies
-library('RCurl')
+library('httr')
 library('jsonlite')
 
-# Build XMLMC URL
-arrUrl = c("https://", 
-           instanceZone, 
-           "api.hornbill.com/", 
-           instanceName)
-
-xmlmcURL = paste(arrUrl, collapse="")
+# Get Endpoint
+xmlmcURL <- fromJSON(paste("https://files.hornbill.com/instances", instanceName, "zoneinfo",sep="/"))$zoneinfo$endpoint
 
 # invokeXmlmc - take params, fire off XMLMC call
-invokeXmlmc = function(url, key, service, xmethod, params)
-{
-  # Build Methodcall
+invokeXmlmc = function(service, xmethod, params) {
   paramsrequest = paste(params , collapse="")
   arrRequest = c(	"<methodCall service=\"",
                   service, 
                   "\" method=\"",
                   xmethod,
                   "\">",
+                  "<params>",
                   paramsrequest,
+                  "</params>",
                   "</methodCall>")
-  # Implode request array in to string
-  request = paste(arrRequest, collapse="")
-  
-  # Build Invoke URL
-  invokeURL = paste(url, "/xmlmc/", service, "/?method=", xmethod, sep="")
-  
-  # Build Headers
-  espKeyAuth = paste('ESP-APIKEY ', key, sep="")
-  requestHeaders = c('Content-Type'='text/xmlmc',
-                     'Cache-control'='no-cache',
-                     'Accept'='text/json',
-                     'Authorization'=espKeyAuth)
-  # Run GET request
-  data =  getURL(	url = invokeURL,
-                  postfields=request,
-                  httpheader=requestHeaders,
-                  verbose=TRUE)
-  return(data)
+  responseFromURL <- POST(paste(xmlmcURL, "xmlmc/", service, "?method=", xmethod, sep=""),
+                          add_headers('Content-Type'='text/xmlmc',Accept='application/json', Authorization=paste('ESP-APIKEY', apiKey, sep=" ")),
+                          body=paste(arrRequest, collapse=""))
+  return(responseFromURL)
 }
 
-### Fire off API call to get measure data
-# Build XMLMC Request
-arrXmlmcParams = c(	"<params>",
-                    "<measureId>", measureID, "</measureId>",
-                    "<returnMeasureValue>true</returnMeasureValue>",
-                    "<returnMeasureTrendData>true</returnMeasureTrendData>",
-                    "</params>")
-# Invoke XMLMC Request
-measureResponse = invokeXmlmc(xmlmcURL, apiKey, "reporting", "measureGetInfo", arrXmlmcParams)
+# Fire off API call to get measure data
+measureResponse = invokeXmlmc("reporting", "measureGetInfo", paste("<measureId>", measureID, "</measureId>",
+                                                                   "<returnMeasureValue>true</returnMeasureValue>",
+                                                                   "<returnMeasureTrendData>true</returnMeasureTrendData>"))
 
 # Build table pointers from JSON string returned
-table = fromJSON(measureResponse)
+table = fromJSON(content(measureResponse, "text", encoding = "UTF-8"))
 
-# Return trendValue table object, with flattened values within, 
-# to ensure dateRange.from and dateRange.to are properly represented in the table output
+# Return trendValue table object, with flattened values within, to ensure dateRange.from and dateRange.to are properly represented in the table output
 dataframe <- flatten(table$params$trendValue)

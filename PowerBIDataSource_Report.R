@@ -7,12 +7,15 @@ reportID = "12"
 reportComment = "A comment to add to the report run"
 deleteReportInstance <- TRUE
 
+csvEncoding <- "UTF-8" # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
+
 # Suspend for X amount of seconds between checks to see if the report is complete
-suspendSeconds <- 5
+suspendSeconds <- 1
 
 # Import dependencies
 library('httr')
 library('jsonlite')
+library('readr')
 
 # Get Endpoint
 xmlmcURL <- fromJSON(paste("https://files.hornbill.com/instances", instanceName, "zoneinfo",sep="/"))$zoneinfo$endpoint
@@ -70,13 +73,12 @@ if (reportSuccess == FALSE) {
 
 # GET request for report CSV content
 reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportCSVLink, sep="/"),
-                      add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-responseBody <- content(reportContent, "text", encoding = "UTF-8")
+                     add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
 
 # Delete the report run instance  
 if (deleteReportInstance == TRUE) {
   reportDeleteHist <- invokeXmlmc("reporting", "reportRunDelete", paste("<runId>", runID, "</runId>"))
 }
 
-# CSV vector in to data frame object
-output <- read.csv(textConnection(responseBody, encoding = "UTF-8"), header = TRUE)
+# CSV vector in to data frame object#
+output <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)

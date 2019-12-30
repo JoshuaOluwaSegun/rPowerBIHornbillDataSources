@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.3.0 (December 30th, 2019)
+
+Features:
+
+- Replaced textConnection & CSV reader code, replaced with httr content parser
+- Added support to define which character set to use when parsing CSV code
+
 ## 1.2.0 (November 26th, 2019)
 
 Features:

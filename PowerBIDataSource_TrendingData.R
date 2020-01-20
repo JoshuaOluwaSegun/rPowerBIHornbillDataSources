@@ -34,9 +34,12 @@ invokeXmlmc = function(service, xmethod, params) {
 measureResponse = invokeXmlmc("reporting", "measureGetInfo", paste("<measureId>", measureID, "</measureId>",
                                                                    "<returnMeasureValue>true</returnMeasureValue>",
                                                                    "<returnMeasureTrendData>true</returnMeasureTrendData>"))
+runOutput <- fromJSON(content(measureResponse, encoding="UTF-8"))
+runStatus <- runOutput$"@status"
 
-# Build table pointers from JSON string returned
-table = fromJSON(content(measureResponse, "text", encoding = "UTF-8"))
-
-# Return trendValue table object, with flattened values within, to ensure dateRange.from and dateRange.to are properly represented in the table output
-dataframe <- flatten(table$params$trendValue)
+if (runStatus == FALSE || runStatus == "fail") {
+  stop(runOutput$state$error)
+} else {
+  # Return trendValue table object, with flattened values within, to ensure dateRange.from and dateRange.to are properly represented in the table output
+  dataframe <- flatten(runOutput$params$trendValue)
+}

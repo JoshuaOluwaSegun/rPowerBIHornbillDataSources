@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.0 (January 20th, 2020)
+
+Features:
+
+- Better handling and reporting of API call errors
+
 ## 1.3.0 (December 30th, 2019)
 
 Features:

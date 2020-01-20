@@ -4,7 +4,7 @@ apiKey = "yourapikey"
 
 # Define Report details
 reportID = "12"
-reportRunID = "332"
+reportRunID = "409"
 csvEncoding <- "UTF-8" # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
 
 # Import dependencies
@@ -34,12 +34,19 @@ invokeXmlmc = function(service, xmethod, params) {
 }
 
 # Get CSV filename from report ID and run ID 
-reportRunStatus = invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", reportRunID, "</runId>"))
-reportCSVLink = fromJSON(content(reportRunStatus, "text", encoding = "UTF-8"))$params$reportRun$csvLink
+reportRunResponse = invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", reportRunID, "</runId>"))
+runOutput <- fromJSON(content(reportRunResponse, encoding="UTF-8"))
+runStatus <- runOutput$"@status"
 
-# GET request for report CSV content
-reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportCSVLink, sep="/"),
-                     add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-
-# CSV vector in to data frame object
-dataframe <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
+if (runStatus == FALSE || runStatus == "fail") {
+  stop(runOutput$state$error)
+} else {
+  reportCSVLink = runOutput$params$reportRun$csvLink
+  
+  # GET request for report CSV content
+  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportCSVLink, sep="/"),
+                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
+  
+  # CSV vector in to data frame object
+  dataframe <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
+}

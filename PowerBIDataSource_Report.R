@@ -40,45 +40,53 @@ invokeXmlmc = function(service, xmethod, params) {
 
 # Kick off report run, get job ID
 reportRunResponse <- invokeXmlmc("reporting", "reportRun", paste("<reportId>", reportID, "</reportId>","<comment>", reportComment, "</comment>"))
-runID <- fromJSON(content(reportRunResponse))$params$runId
+runOutput <- fromJSON(content(reportRunResponse, encoding="UTF-8"))
+runStatus <- runOutput$"@status"
 
-reportSuccess <- FALSE
-reportComplete <- FALSE
-
-if (runID > 0) {
-  repeat {
-    Sys.sleep(suspendSeconds)
-    
-    # Check status of report
-    reportRunStatus <- invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", runID, "</runId>"))
-    runStatus <- fromJSON(content(reportRunStatus))$params$reportRun$status
-    runComp <- grepl(runStatus, "completed")
-    
-    if (runComp == TRUE) {
-      reportCSVLink <- fromJSON(content(reportRunStatus))$params$reportRun$csvLink
-      reportSuccess <- TRUE
-      reportComplete <- TRUE
-      break;
-    } else if (runStatus == "failed") {	
-      reportSuccess <- FALSE
-      reportComplete <- TRUE
-      break;
+if (runStatus == FALSE || runStatus == "fail") {
+  stop(runOutput$state$error)
+} else {
+  
+  runID <- runOutput$params$runId
+  
+  reportSuccess <- FALSE
+  reportComplete <- FALSE
+  
+  if (runID > 0) {
+    repeat {
+      Sys.sleep(suspendSeconds)
+      
+      # Check status of report
+      reportRunStatus <- invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", runID, "</runId>"))
+      runStatus <- fromJSON(content(reportRunStatus))$params$reportRun$status
+      runComp <- grepl(runStatus, "completed")
+      
+      if (runComp == TRUE) {
+        reportCSVLink <- fromJSON(content(reportRunStatus))$params$reportRun$csvLink
+        reportSuccess <- TRUE
+        reportComplete <- TRUE
+        break;
+      } else if (runStatus == "failed") {	
+        reportSuccess <- FALSE
+        reportComplete <- TRUE
+        break;
+      }
     }
   }
+  
+  if (reportSuccess == FALSE) {	
+    stop()
+  }
+  
+  # GET request for report CSV content
+  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportCSVLink, sep="/"),
+                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
+  
+  # Delete the report run instance  
+  if (deleteReportInstance == TRUE) {
+    reportDeleteHist <- invokeXmlmc("reporting", "reportRunDelete", paste("<runId>", runID, "</runId>"))
+  }
+  
+  # CSV vector in to data frame object#
+  output <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
 }
-
-if (reportSuccess == FALSE) {	
-  stop()
-}
-
-# GET request for report CSV content
-reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportCSVLink, sep="/"),
-                     add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-
-# Delete the report run instance  
-if (deleteReportInstance == TRUE) {
-  reportDeleteHist <- invokeXmlmc("reporting", "reportRunDelete", paste("<runId>", runID, "</runId>"))
-}
-
-# CSV vector in to data frame object#
-output <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)

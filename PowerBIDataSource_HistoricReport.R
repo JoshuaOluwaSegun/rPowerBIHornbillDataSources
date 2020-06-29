@@ -10,9 +10,9 @@ csvEncoding <- "UTF-8" # For Unicode byte translation issues in Power BI, try us
 # Define Proxy Details
 proxyAddress <- NULL # "127.0.0.1" - location of proxy
 proxyPort <- NULL # 8080 - proxy port
-proxyUsername = NULL # login details for proxy, if needed
-proxyPassword = NULL # login details for proxy, if needed
-proxyAuth = NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
+proxyUsername <- NULL # login details for proxy, if needed
+proxyPassword <- NULL # login details for proxy, if needed
+proxyAuth <- NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
 
 # Import dependencies
 library('httr')

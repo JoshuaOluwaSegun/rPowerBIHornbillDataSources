@@ -24,6 +24,14 @@ Each script requires the following variables to be set (all case-sensitive):
 - instanceName - This is the name of the instance to connect to
 - apiKey - This is an API key generated against a user account on the Hornbill Administration Console, where the user account has sufficient access to run reports and access trending data.
 
+Each script an be configured to use a proxy for access to your Hornbill instance. Set all of the below to NULL to not use a proxy. If using a proxy, the proxyAddress and proxyPort are the minimum required to be provided.
+
+- proxyAddress - The hostname or IP address of the proxy
+- proxyPort - The proxy port
+- proxyUsername - The username to access the proxy, if required
+- proxyPassword - The password for the above account
+- proxyAuth - The type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
+
 ## Scripts
 
 ### PowerBIDataSource_Report.R
@@ -39,7 +47,7 @@ Script Variables:
 - reportID: The ID (Primary Key, INT) of the  report to be run;
 - reportComment: A comment to write against the report run job.
 - deleteReportInstance: a boolean value to determine if, once the report is run on Hornbill and the data has been pulled in to PowerBI, whether the historic report run instance should be removed from your Hornbill report.
-- csvEncoding: The character set to be used when decoding the CSV report data. This will usually be "UTF-8", but if you have issues returning data with certain characters (the Windows E2 80* characters are the usual culprits) then choose a different character set to use, ie: "ISO-8859-1". Look out for an error that looks like this for character set issues: "Details: "Unable to translate bytes [E2][80] at index 1077 from specified code page to Unicode.
+- csvEncoding: The character set to be used when decoding the CSV report data. This will usually be "UTF-8", but if you have issues returning data with certain characters (the Windows E2 80* characters are the usual culprits) then choose a different character set to use, ie: "ISO-8859-1". Look out for an error that looks like this for character set issues: "Details: "Unable to translate bytes [E2][80] at index 1077 from specified code page to Unicode"".
 - suspendSeconds: The number of seconds the script should wait between checks to see if the report is complete. NOTE : there is a defect/incompatibility between Power BI and the RCurl library that we are using to make the HTTP requests to Hornbill, where if more than 4 or 5 calls with getURL are made within the same script then getURL hangs until Power BI releases it. Increasing the number of seconds between checks reduces the required number of calls to your Hornbill instance, and will fix data source hanging issues.
 
 ### PowerBIDataSource_HistoricReport.R
@@ -78,4 +86,8 @@ As the response parameters from the Trending Engine is fixed (unlike the Reporti
 
 ## Power BI Notes
 
+<<<<<<< HEAD
 These scripts have been designed to be used as data sources only, and not as the source of R script visuals within Power BI. Which is not to say they couldn't be used in your R script visuals, with a little extra code :)
+=======
+These scripts have been designed to be used as data sources only, and not as the source of R script visuals within Power BI. Which is not to say they couldn't be used in your R script visuals, with a little extra code :)
+>>>>>>> d586b5ea275b0a884f57eea37fd0afec380a760a

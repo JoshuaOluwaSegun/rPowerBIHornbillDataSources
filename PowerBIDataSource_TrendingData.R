@@ -5,12 +5,26 @@ apiKey = "yourapikey"
 # Define Measure details
 measureID = "71"
 
+# Define Proxy Details
+proxyAddress <- NULL # "127.0.0.1" - location of proxy
+proxyPort <- NULL # 8080 - proxy port
+proxyUsername = NULL # login details for proxy, if needed
+proxyPassword = NULL # login details for proxy, if needed
+proxyAuth = NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
+
 # Import dependencies
 library('httr')
 library('jsonlite')
 
+# Set httr default timeout, defaults to 10 seconds
+set_config( config( connecttimeout = 60 ) )
+
 # Get Endpoint
-xmlmcURL <- fromJSON(paste("https://files.hornbill.com/instances", instanceName, "zoneinfo",sep="/"))$zoneinfo$endpoint
+responseFromFiles <- GET(paste("https://files.hornbill.com/instances", instanceName, "zoneinfo",sep="/"), 
+                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
+                         add_headers('Content-Type'='application/json',Accept='application/json'))
+
+xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$endpoint
 
 # invokeXmlmc - take params, fire off XMLMC call
 invokeXmlmc = function(service, xmethod, params) {
@@ -26,6 +40,7 @@ invokeXmlmc = function(service, xmethod, params) {
                   "</methodCall>")
   responseFromURL <- POST(paste(xmlmcURL, "xmlmc/", service, "?method=", xmethod, sep=""),
                           add_headers('Content-Type'='text/xmlmc',Accept='application/json', Authorization=paste('ESP-APIKEY', apiKey, sep=" ")),
+                          use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                           body=paste(arrRequest, collapse=""))
   return(responseFromURL)
 }

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.5.0 (Juner 29th, 2020)
+
+Features:
+
+- Added support for proxies
+
 ## 1.4.0 (January 20th, 2020)
 
 Features:

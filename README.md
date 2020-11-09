@@ -14,8 +14,7 @@ The scripts have been written in [R](https://cran.r-project.org/), and were deve
 The following packages are required dependencies, and can be installed via the CRAN repositories:
 
 - [httr](https://cran.r-project.org/web/packages/httr/)
-- [jsonlite](https://cran.r-project.org/web/packages/jsonlite/)
-- [readr](https://cran.r-project.org/web/packages/readr/index.html)
+- [data.table](https://cran.r-project.org/web/packages/data.table/)
 
 ## Configuration used in all scripts
 

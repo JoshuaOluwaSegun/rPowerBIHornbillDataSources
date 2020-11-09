@@ -3,8 +3,8 @@ instanceName = "yourinstanceid"
 apiKey = "yourapikey"
 
 # Define Report details
-reportID = "2"
-reportRunID = "1"
+reportID = "6"
+reportRunID = "143"
 csvEncoding <- "UTF-8" # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
 
 # Define Proxy Details
@@ -16,8 +16,6 @@ proxyAuth <- NULL # "any" - type of HTTP authentication to use. Should be one of
 
 # Import dependencies
 library('httr')
-library('jsonlite')
-library('readr')
 
 # Set httr default timeout, defaults to 10 seconds
 set_config( config( connecttimeout = 60 ) )
@@ -51,7 +49,7 @@ invokeXmlmc = function(service, xmethod, params) {
 
 # Get CSV filename from report ID and run ID 
 reportRunResponse = invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", reportRunID, "</runId>"))
-runOutput <- fromJSON(content(reportRunResponse, encoding="UTF-8"))
+runOutput <- content(reportRunResponse, encoding="UTF-8")
 runStatus <- runOutput$"@status"
 
 if (runStatus == FALSE || runStatus == "fail") {

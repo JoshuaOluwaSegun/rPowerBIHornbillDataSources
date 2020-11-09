@@ -1,18 +1,26 @@
 # CHANGELOG
 
-## 1.5.0 (Juner 29th, 2020)
+## 1.6.0 (November 9th, 2020)
+
+Features:
+
+- Added support for updated JSON API response
+- Removed jsonlite and readr dependency
+- Introduced new dependency in TrendingData script - [data.table](https://cran.r-project.org/web/packages/data.table/)
+
+## 1.5.0 (June 29th, 2020)
 
 Features:
 
 - Added support for proxies
 
-## 1.4.0 (January 20th, 2020)
+## 1.4.0 (January 20th, 2020)
 
 Features:
 
 - Better handling and reporting of API call errors
 
-## 1.3.0 (December 30th, 2019)
+## 1.3.0 (December 30th, 2019)
 
 Features:
 

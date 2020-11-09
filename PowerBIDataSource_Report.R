@@ -3,7 +3,7 @@ instanceName = "yourinstanceid"
 apiKey = "yourapikey"
 
 # Define Report details
-reportID = "2"
+reportID = "6"
 reportComment = "A comment to add to the report run"
 deleteReportInstance <- TRUE
 csvEncoding <- "UTF-8" # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
@@ -14,14 +14,13 @@ suspendSeconds <- 1
 # Define Proxy Details
 proxyAddress <- NULL # "127.0.0.1" - location of proxy
 proxyPort <- NULL # 8080 - proxy port
-proxyUsername <- NULL # login details for proxy, if needed
-proxyPassword <- NULL # login details for proxy, if needed
-proxyAuth <- NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
+proxyUsername = NULL # login details for proxy, if needed
+proxyPassword = NULL # login details for proxy, if needed
+proxyAuth = NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
 
 # Import dependencies
 library('httr')
-library('jsonlite')
-library('readr')
+# library('readr')
 
 # Set httr default timeout, defaults to 10 seconds
 set_config( config( connecttimeout = 60 ) )
@@ -53,8 +52,7 @@ invokeXmlmc = function(service, xmethod, params) {
 }
 
 # Kick off report run, get job ID
-reportRunResponse <- invokeXmlmc("reporting", "reportRun", paste("<reportId>", reportID, "</reportId>","<comment>", reportComment, "</comment>"))
-runOutput <- fromJSON(content(reportRunResponse, encoding="UTF-8"))
+runOutput <- content(invokeXmlmc("reporting", "reportRun", paste("<reportId>", reportID, "</reportId>","<comment>", reportComment, "</comment>")), encoding="UTF-8")
 runStatus <- runOutput$"@status"
 
 if (runStatus == FALSE || runStatus == "fail") {
@@ -72,11 +70,11 @@ if (runStatus == FALSE || runStatus == "fail") {
       
       # Check status of report
       reportRunStatus <- invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", runID, "</runId>"))
-      runStatus <- fromJSON(content(reportRunStatus))$params$reportRun$status
+      runStatus <- content(reportRunStatus)$params$reportRun$status
       runComp <- grepl(runStatus, "completed")
       
       if (runComp == TRUE) {
-        reportCSVLink <- fromJSON(content(reportRunStatus))$params$reportRun$csvLink
+        reportCSVLink <- content(reportRunStatus)$params$reportRun$csvLink
         reportSuccess <- TRUE
         reportComplete <- TRUE
         break;

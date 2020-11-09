@@ -8,13 +8,13 @@ measureID = "71"
 # Define Proxy Details
 proxyAddress <- NULL # "127.0.0.1" - location of proxy
 proxyPort <- NULL # 8080 - proxy port
-proxyUsername <- NULL # login details for proxy, if needed
-proxyPassword <- NULL # login details for proxy, if needed
-proxyAuth <- NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
+proxyUsername = NULL # login details for proxy, if needed
+proxyPassword = NULL # login details for proxy, if needed
+proxyAuth = NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
 
 # Import dependencies
 library('httr')
-library('jsonlite')
+library(data.table)
 
 # Set httr default timeout, defaults to 10 seconds
 set_config( config( connecttimeout = 60 ) )
@@ -49,12 +49,13 @@ invokeXmlmc = function(service, xmethod, params) {
 measureResponse = invokeXmlmc("reporting", "measureGetInfo", paste("<measureId>", measureID, "</measureId>",
                                                                    "<returnMeasureValue>true</returnMeasureValue>",
                                                                    "<returnMeasureTrendData>true</returnMeasureTrendData>"))
-runOutput <- fromJSON(content(measureResponse, encoding="UTF-8"))
+runOutput <- content(measureResponse, encoding="UTF-8")
+
 runStatus <- runOutput$"@status"
 
 if (runStatus == FALSE || runStatus == "fail") {
   stop(runOutput$state$error)
 } else {
   # Return trendValue table object, with flattened values within, to ensure dateRange.from and dateRange.to are properly represented in the table output
-  dataframe <- flatten(runOutput$params$trendValue)
+  dataframe <- as.data.frame(do.call(rbind, lapply(runOutput$params$trendValue, as.data.frame)))
 }

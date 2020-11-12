@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.8.0 (November 12th, 2020)
+
+Features:
+
+- Added support for data in XLSX files to be added to the output dataframe in the codepage as defined in the csvEncoding variable 
+
 ## 1.7.0 (November 12th, 2020)
 
 Features:

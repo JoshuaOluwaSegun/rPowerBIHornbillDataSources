@@ -10,11 +10,10 @@ useXLSX <- FALSE # FALSE = the script will use the CSV output from your report; 
 
 # Settings for using XLSX report output
 # You must have XLSX output enabled against the target report in your Hornbill instance to use these settings
-deleteLocalXLSX <- TRUE  # FALSE = the downloaded XLSX file will remain on disk once the extract is complete; TRUE = the local XLSX file is deleted upon completion
-xlsxLocalFolder <- "/Users/steveg/R/rPowerBIHornbillDataSources/" # Can be left blank, or specify a local folder to store the downloaded XLSX file into. Requires the postfixed / or \ depending on your OS
+deleteLocalXLSX <- FALSE  # FALSE = the downloaded XLSX file will remain on disk once the extract is complete; TRUE = the local XLSX file is deleted upon completion
+xlsxLocalFolder <- "" # Can be left blank, or specify a local folder to store the downloaded XLSX file into. Requires the postfixed / or \ depending on your OS
 
-# Settings for using CSV report output
-# You must have CSV output enabled against the target report in your Hornbill instance to use these settings
+# Settings for using CSV report output, or character encoding conversion for XLSX repost output
 csvEncoding <- "UTF-8"    # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
 
 # Suspend for X amount of seconds between checks to see if the report is complete
@@ -126,9 +125,13 @@ if (runStatus == FALSE || runStatus == "fail") {
   # vector into data frame object
   if (useXLSX == TRUE) {
     library(readxl)
-    output <- read_excel(reportLinkLocal)
+    write.csv(read_excel(reportLinkLocal),paste(reportLinkLocal, "csv", sep="."), row.names = FALSE)
+    output <-read.csv(paste(reportLinkLocal, "csv", sep="."), encoding = csvEncoding, stringsAsFactors=FALSE)
     if (deleteLocalXLSX == TRUE && file.exists(reportLinkLocal)) {
       file.remove(reportLinkLocal)
+    }
+    if (file.exists(paste(reportLinkLocal, "csv", sep="."))) {
+      file.remove(paste(reportLinkLocal, "csv", sep="."))
     }
   } else {
     output <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)

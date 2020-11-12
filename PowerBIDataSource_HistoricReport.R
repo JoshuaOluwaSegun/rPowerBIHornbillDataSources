@@ -4,15 +4,24 @@ apiKey = "yourapikey"
 
 # Define Report details
 reportID = "6"
-reportRunID = "143"
-csvEncoding <- "UTF-8" # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
+reportRunID = "172"
+useXLSX <- FALSE # FALSE = the script will use the CSV output from your report; TRUE = the script will use the XLSX output from your report
+
+# Settings for using XLSX report output
+# You must have XLSX output enabled against the target report in your Hornbill instance to use these settings
+deleteLocalXLSX <- FALSE  # FALSE = the downloaded XLSX file will remain on disk once the extract is complete; TRUE = the local XLSX file is deleted upon completion
+xlsxLocalFolder <- ""     # Can be left blank, or specify a local folder to store the downloaded XLSX file into. Requires the postfixed / or \ depending on your OS
+
+# Settings for using CSV report output
+# You must have CSV output enabled against the target report in your Hornbill instance to use these settings
+csvEncoding <- "UTF-8"    # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
 
 # Define Proxy Details
-proxyAddress <- NULL # "127.0.0.1" - location of proxy
-proxyPort <- NULL # 8080 - proxy port
+proxyAddress <- NULL  # "127.0.0.1" - location of proxy
+proxyPort <- NULL     # 8080 - proxy port
 proxyUsername <- NULL # login details for proxy, if needed
 proxyPassword <- NULL # login details for proxy, if needed
-proxyAuth <- NULL # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
+proxyAuth <- NULL     # "any" - type of HTTP authentication to use. Should be one of the following: basic, digest, digest_ie, gssnegotiate, ntlm, any.
 
 # Import dependencies
 library('httr')
@@ -47,7 +56,7 @@ invokeXmlmc = function(service, xmethod, params) {
   return(responseFromURL)
 }
 
-# Get CSV filename from report ID and run ID 
+# Get filenames from report ID and run ID 
 reportRunResponse = invokeXmlmc("reporting", "reportRunGetStatus", paste("<runId>", reportRunID, "</runId>"))
 runOutput <- content(reportRunResponse, encoding="UTF-8")
 runStatus <- runOutput$"@status"
@@ -55,13 +64,29 @@ runStatus <- runOutput$"@status"
 if (runStatus == FALSE || runStatus == "fail") {
   stop(runOutput$state$error)
 } else {
-  reportCSVLink = runOutput$params$reportRun$csvLink
-  
-  # GET request for report CSV content
-  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportCSVLink, sep="/"),
-                       use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-  
-  # CSV vector in to data frame object
-  dataframe <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
+  if (useXLSX == TRUE) {
+    # Get data from XLSX
+    library(readxl)
+    for (file in runOutput$params$files) {
+      if (file$type == "xlsx") {
+        reportLink = file$name
+      }
+    }
+    reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
+    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportLink, sep="/"),
+                         write_disk(reportLinkLocal, overwrite=TRUE),
+                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
+                         add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
+    dataframe <- read_excel(reportLinkLocal)
+    if (deleteLocalXLSX == TRUE && file.exists(reportLinkLocal)) {
+      file.remove(reportLinkLocal)
+    }
+  } else {
+    # Get data from CSV
+    reportLink <- runOutput$params$reportRun$csvLink
+    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportLink, sep="/"),
+                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
+                         add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
+    dataframe <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
+  }
 }

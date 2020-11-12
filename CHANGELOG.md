@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.7.0 (November 12th, 2020)
+
+Features:
+
+- Added support for XLSX report output for Report and HistoricReport scripts
+
 ## 1.6.0 (November 9th, 2020)
 
 Features:

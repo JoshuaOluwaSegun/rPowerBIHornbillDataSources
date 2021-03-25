@@ -92,8 +92,4 @@ As the response parameters from the Trending Engine is fixed (unlike the Reporti
 
 ## Power BI Notes
 
-<<<<<<< HEAD
 These scripts have been designed to be used as data sources only, and not as the source of R script visuals within Power BI. Which is not to say they couldn't be used in your R script visuals, with a little extra code :)
-=======
-These scripts have been designed to be used as data sources only, and not as the source of R script visuals within Power BI. Which is not to say they couldn't be used in your R script visuals, with a little extra code :)
->>>>>>> d586b5ea275b0a884f57eea37fd0afec380a760a

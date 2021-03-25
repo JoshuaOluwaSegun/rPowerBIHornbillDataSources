@@ -21,7 +21,7 @@ The following packages are required dependencies, and can be installed via the C
 
 Each script requires the following variables to be set (all case-sensitive):
 
-- instanceName - This is the name of the instance to connect to. So for instance, if you use https://live.hornbill.com/**yourinstancename** to connect to Hornbill, then **yourinstancename** is the part of the URL that should be used in this variable. Note, this is case sensitive.
+- instanceName - This is the name of the instance to connect to. So for instance, if you use https://live.hornbill.com/yourinstancename to connect to Hornbill, then **yourinstancename** is the part of the URL that should be used in this variable. Note, this is case sensitive.
 - apiKey - This is an API key generated against a user account on the Hornbill Administration Console, where the user account has sufficient access to run reports and access trending data.
 
 Each script an be configured to use a proxy for access to your Hornbill instance. Set all of the below to NULL to not use a proxy. If using a proxy, the proxyAddress and proxyPort are the minimum required to be provided.

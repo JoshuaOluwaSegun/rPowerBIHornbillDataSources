@@ -72,7 +72,7 @@ if (runStatus == FALSE || runStatus == "fail") {
       }
     }
     reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
-    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportLink, sep="/"),
+    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
                          write_disk(reportLinkLocal, overwrite=TRUE),
                          use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                          add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))

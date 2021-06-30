@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.8.1 (June 30th, 2021)
+
+Changes:
+
+- URL encoded the report filename 
+
 ## 1.8.0 (November 12th, 2020)
 
 Features:

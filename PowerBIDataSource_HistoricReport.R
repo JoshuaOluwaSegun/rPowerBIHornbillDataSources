@@ -4,7 +4,7 @@ apiKey = "yourapikey"
 
 # Define Report details
 reportID = "6"
-reportRunID = "172"
+reportRunID = "45"
 useXLSX <- FALSE # FALSE = the script will use the CSV output from your report; TRUE = the script will use the XLSX output from your report
 
 # Settings for using XLSX report output
@@ -63,35 +63,29 @@ runStatus <- runOutput$"@status"
 if (runStatus == FALSE || runStatus == "fail") {
   stop(runOutput$state$error)
 } else {
+  for (file in runOutput$params$files) {
+    if (file$type == "xlsx" && useXLSX == TRUE) {
+      reportLink = file$name
+    } else if (file$type == "csv" && useXLSX == FALSE) {
+      reportLink = file$name
+    }
+  }
+  reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
+  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
+                       write_disk(reportLinkLocal, overwrite=TRUE),
+                       use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
+                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
   if (useXLSX == TRUE) {
-    # Get data from XLSX
     library(readxl)
-    for (file in runOutput$params$files) {
-      if (file$type == "xlsx") {
-        reportLink = file$name
-      }
-    }
-    reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
-    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
-                         write_disk(reportLinkLocal, overwrite=TRUE),
-                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                         add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-    
     write.csv(read_excel(reportLinkLocal),paste(reportLinkLocal, "csv", sep="."), row.names = FALSE)
-    dataframe <-read.csv(paste(reportLinkLocal, "csv", sep="."), encoding = csvEncoding, stringsAsFactors=FALSE)
-    
-    if (deleteLocalXLSX == TRUE && file.exists(reportLinkLocal)) {
-      file.remove(reportLinkLocal)
-    }
-    if (file.exists(paste(reportLinkLocal, "csv", sep="."))) {
-      file.remove(paste(reportLinkLocal, "csv", sep="."))
-    }
+    output <-read.csv(paste(reportLinkLocal, "csv", sep="."), encoding = csvEncoding, stringsAsFactors=FALSE)
   } else {
-    # Get data from CSV
-    reportLink <- runOutput$params$reportRun$csvLink
-    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, reportLink, sep="/"),
-                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                         add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-    dataframe <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
+    output <- content(reportContent, as = "parsed", type = "text/csv", encoding = csvEncoding)
+  }
+  if (deleteLocalXLSX == TRUE && file.exists(reportLinkLocal)) {
+    file.remove(reportLinkLocal)
+  }
+  if (file.exists(paste(reportLinkLocal, "csv", sep="."))) {
+    file.remove(paste(reportLinkLocal, "csv", sep="."))
   }
 }

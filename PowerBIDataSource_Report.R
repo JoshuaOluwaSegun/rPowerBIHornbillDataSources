@@ -6,12 +6,12 @@ apiKey = "yourapikey"
 reportID = "6"
 reportComment = "A comment to add to the report run"
 deleteReportInstance <- FALSE
-useXLSX <- FALSE # FALSE = the script will use the CSV output from your report; TRUE = the script will use the XLSX output from your report
+useXLSX <- TRUE # FALSE = the script will use the CSV output from your report; TRUE = the script will use the XLSX output from your report
 
 # Settings for using XLSX report output
 # You must have XLSX output enabled against the target report in your Hornbill instance to use these settings
 deleteLocalXLSX <- FALSE  # FALSE = the downloaded XLSX file will remain on disk once the extract is complete; TRUE = the local XLSX file is deleted upon completion
-xlsxLocalFolder <- "/Users/steveg/R/rPowerBIHornbillDataSources/" # Can be left blank, or specify a local folder to store the downloaded XLSX file into. Requires the postfixed / or \ depending on your OS
+xlsxLocalFolder <- "" # Can be left blank, or specify a local folder to store the downloaded XLSX file into. Requires the postfixed / or \ depending on your OS
 
 # Settings for using CSV report output, or character encoding conversion for XLSX repost output
 csvEncoding <- "UTF-8"    # For Unicode byte translation issues in Power BI, try using ISO-8859-1 as the value for csvEncoding
@@ -81,14 +81,12 @@ if (runStatus == FALSE || runStatus == "fail") {
       runComp <- grepl(runStatus, "completed")
       
       if (runComp == TRUE) {
-        if (useXLSX == TRUE) {
-          for (file in content(reportRunStatus)$params$files) {
-            if (file$type == "xlsx") {
-              reportLink = file$name
-            }
+        for (file in content(reportRunStatus)$params$files) {
+          if (file$type == "xlsx" && useXLSX == TRUE) {
+            reportLink = file$name
+          } else if (file$type == "csv" && useXLSX == FALSE) {
+            reportLink = file$name
           }
-        } else {
-          reportLink <- content(reportRunStatus)$params$reportRun$csvLink
         }
         reportSuccess <- TRUE
         reportComplete <- TRUE
@@ -106,17 +104,11 @@ if (runStatus == FALSE || runStatus == "fail") {
   }
   
   # GET request for report CSV content
-  if (useXLSX == TRUE) {
-    reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
-    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
-                         write_disk(reportLinkLocal, overwrite=TRUE),
-                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                         add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-  } else {
-    reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
-                         use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                         add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
-  }
+  reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
+  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
+                       write_disk(reportLinkLocal, overwrite=TRUE),
+                       use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
+                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
   # Delete the report run instance  
   if (deleteReportInstance == TRUE) {
     reportDeleteHist <- invokeXmlmc("reporting", "reportRunDelete", paste("<runId>", runID, "</runId>"))

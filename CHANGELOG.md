@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.8.2 (Just 2nd, 2021)
+
+Changes:
+
+- Updated method to pull CSV report data
+
 ## 1.8.1 (June 30th, 2021)
 
 Changes:

@@ -3,7 +3,7 @@ instanceName = "yourinstanceid"
 apiKey = "yourapikey"
 
 # Define Measure details
-measureID = "71"
+measureID = "10"
 
 # Define Proxy Details
 proxyAddress <- NULL # "127.0.0.1" - location of proxy
@@ -24,7 +24,7 @@ responseFromFiles <- GET(paste("https://files.hornbill.com/instances", instanceN
                          use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                          add_headers('Content-Type'='application/json',Accept='application/json'))
 
-xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$endpoint
+xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$apiEndpoint
 
 # invokeXmlmc - take params, fire off XMLMC call
 invokeXmlmc = function(service, xmethod, params) {
@@ -38,7 +38,7 @@ invokeXmlmc = function(service, xmethod, params) {
                   paramsrequest,
                   "</params>",
                   "</methodCall>")
-  responseFromURL <- POST(paste(xmlmcURL, "xmlmc/", service, "?method=", xmethod, sep=""),
+  responseFromURL <- POST(paste(xmlmcURL, service, "?method=", xmethod, sep=""),
                           add_headers('Content-Type'='text/xmlmc',Accept='application/json', Authorization=paste('ESP-APIKEY', apiKey, sep=" ")),
                           use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                           body=paste(arrRequest, collapse=""))

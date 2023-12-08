@@ -3,7 +3,7 @@ instanceName = "yourinstanceid"
 apiKey = "yourapikey"
 
 # Define Report details
-reportID = "6"
+reportID = "1"
 reportComment = "A comment to add to the report run"
 deleteReportInstance <- FALSE
 useXLSX <- TRUE # FALSE = the script will use the CSV output from your report; TRUE = the script will use the XLSX output from your report
@@ -37,7 +37,8 @@ responseFromFiles <- GET(paste("https://files.hornbill.com/instances", instanceN
                          use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                          add_headers('Content-Type'='application/json',Accept='application/json'))
 
-xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$endpoint
+xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$apiEndpoint
+davURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$davEndpoint
 
 # invokeXmlmc - take params, fire off XMLMC call
 invokeXmlmc = function(service, xmethod, params) {
@@ -51,7 +52,7 @@ invokeXmlmc = function(service, xmethod, params) {
                   paramsrequest,
                   "</params>",
                   "</methodCall>")
-  responseFromURL <- POST(paste(xmlmcURL, "xmlmc/", service, "?method=", xmethod, sep=""),
+  responseFromURL <- POST(paste(xmlmcURL, service, "?method=", xmethod, sep=""),
                           add_headers('Content-Type'='text/xmlmc',Accept='application/json', Authorization=paste('ESP-APIKEY', apiKey, sep=" ")),
                           use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                           body=paste(arrRequest, collapse=""))
@@ -105,10 +106,10 @@ if (runStatus == FALSE || runStatus == "fail") {
   
   # GET request for report CSV content
   reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
-  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
+  reportContent <- GET(paste(davURL,"reports", reportID, URLencode(reportLink), sep="/"),
                        write_disk(reportLinkLocal, overwrite=TRUE),
                        use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
+                       add_headers('Content-Type'='text/dav', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
   # Delete the report run instance  
   if (deleteReportInstance == TRUE) {
     reportDeleteHist <- invokeXmlmc("reporting", "reportRunDelete", paste("<runId>", runID, "</runId>"))

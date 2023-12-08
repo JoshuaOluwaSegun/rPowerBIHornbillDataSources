@@ -3,8 +3,8 @@ instanceName = "yourinstanceid"
 apiKey = "yourapikey"
 
 # Define Report details
-reportID = "6"
-reportRunID = "45"
+reportID = "1"
+reportRunID = "21"
 useXLSX <- FALSE # FALSE = the script will use the CSV output from your report; TRUE = the script will use the XLSX output from your report
 
 # Settings for using XLSX report output
@@ -33,8 +33,8 @@ responseFromFiles <- GET(paste("https://files.hornbill.com/instances", instanceN
                          use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
                          add_headers('Content-Type'='application/json',Accept='application/json'))
 
-xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$endpoint
-
+xmlmcURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$apiEndpoint
+davURL <-  content(responseFromFiles, as = "parsed", type = "application/json", encoding="UTF-8")$zoneinfo$davEndpoint
 # invokeXmlmc - take params, fire off XMLMC call
 invokeXmlmc = function(service, xmethod, params) {
   paramsrequest = paste(params , collapse="")
@@ -47,7 +47,7 @@ invokeXmlmc = function(service, xmethod, params) {
                   paramsrequest,
                   "</params>",
                   "</methodCall>")
-  apiUrl = paste(xmlmcURL, "xmlmc/", service, "?method=", xmethod, sep="")
+  apiUrl = paste(xmlmcURL, service, "?method=", xmethod, sep="")
   responseFromURL <- POST(apiUrl,
                           add_headers('Content-Type'='text/xmlmc',Accept='application/json', Authorization=paste('ESP-APIKEY', apiKey, sep=" ")),
                           use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
@@ -71,10 +71,10 @@ if (runStatus == FALSE || runStatus == "fail") {
     }
   }
   reportLinkLocal <- paste(xlsxLocalFolder, reportLink, sep="")
-  reportContent <- GET(paste(xmlmcURL, "dav","reports", reportID, URLencode(reportLink), sep="/"),
+  reportContent <- GET(paste(davURL, "reports", reportID, URLencode(reportLink), sep="/"),
                        write_disk(reportLinkLocal, overwrite=TRUE),
                        use_proxy(proxyAddress, proxyPort, auth = proxyAuth, username = proxyUsername, password = proxyPassword),
-                       add_headers('Content-Type'='text/xmlmc', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
+                       add_headers('Content-Type'='text/dav', Authorization=paste('ESP-APIKEY ', apiKey, sep="")))
   if (useXLSX == TRUE) {
     library(readxl)
     write.csv(read_excel(reportLinkLocal),paste(reportLinkLocal, "csv", sep="."), row.names = FALSE)

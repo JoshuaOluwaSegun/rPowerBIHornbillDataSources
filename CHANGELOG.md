@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.8.3 (Dec 8th, 2023)
+
+Changes:
+
+- Updated XMLMC API Endpoint
+- Inclided Dav Endpoint
+
 ## 1.8.2 (Just 2nd, 2021)
 
 Changes:
